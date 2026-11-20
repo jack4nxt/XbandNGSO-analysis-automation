@@ -1,0 +1,9 @@
+# 脚手架阶段的最小依赖;落地后请固定版本号。
+pydantic>=2.5
+PyYAML>=6.0
+typer>=0.12
+numpy>=1.26
+pandas>=2.1
+openpyxl>=3.1
+# 可选:python-docx (Word 协调清单)、pdfplumber (PDF 协调清单)
+pytest>=8.0

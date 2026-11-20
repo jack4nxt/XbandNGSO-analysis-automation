@@ -1,0 +1,73 @@
+# 协调列表解析、规范化、数据库匹配与分类规则
+# 所有列名、分隔符、后缀正则均在此配置，代码内零硬编码。
+
+legacy_excel:
+  sheet: "List"
+  header_row: 1
+  first_data_row: 2
+  columns:
+    frequency_band: "Frequency Band"
+    operator: "Operator"
+    satellite_network: "Satellite Network"
+    notice_id: "Notice ID"
+    status: "Status"
+    date_of_exceed: "Date of Exceed"
+    num_satellites: "Number of Satellites"
+    num_chn_stations: "Number of Station of CHN"
+    chn_stations: "Station of CHN"
+    reason: "受影响原因"
+
+user_excel:
+  sheet: "List"
+  header_row: 1
+  first_data_row: 2
+  columns:
+    frequency_band: "Frequency Band"
+    operator: "Operator"
+    satellite_network: "Satellite Network"
+    notice_id: "Notice ID"
+    status: "Status"
+    date_of_exceed: "Date of Exceed"
+    num_satellites: "Number of Satellites"
+    num_chn_stations: "Number of Station of CHN"
+    chn_stations: "Station of CHN"
+    reason: "受影响原因"
+
+word:
+  table_index: 0
+  columns:
+    satellite_network: "Satellite Network"
+    frequency_band: "Frequency Band"
+    reason: "受影响原因"
+
+pdf:
+  columns:
+    satellite_network: "Satellite Network"
+    frequency_band: "Frequency Band"
+    reason: "受影响原因"
+
+normalize:
+  cell_separators: ["\n", ";", "；", ","]
+  # 依次剥离名称尾部的非库标识后缀（例如 "(NGSO)"、"(105°E)"）
+  strip_suffix_patterns:
+    - "\\s*\\(\\s*NGSO\\s*\\)\\s*$"
+    - "\\s*\\(\\s*GSO\\s*\\)\\s*$"
+    - "\\s*\\([^)]*°[EWew]?\\s*\\)\\s*$"
+  case_insensitive: true
+
+match:
+  # 按顺序尝试的匹配策略；命中即停，多候选不猜测
+  strategies:
+    - "exact"
+    - "alnum_insensitive"
+  allow_multiple_notices: false  # 同名多通知单时是否允许自动筛选；false 则进 NEEDS_REVIEW
+  prefer_associated_earth_stations: true  # 多通知单时优先选含目标频段具体关联地球站者，再按最新 d_rcv 排序
+
+filter:
+  exclude_reasons: []            # 例如 ["非同频"]；空列表表示不过滤
+  require_chn_stations: true
+  # 对清单里的“Frequency Band”文本做预过滤: 若解析出频段范围且与 batch.bands 均无交集则直接跳过;
+  # 文本无法解析时保留(不误杀)
+  band_text_prefilter: true
+  band_range_regex: "(\\d+(?:\\.\\d+)?)\\s*[-~～至]\\s*(\\d+(?:\\.\\d+)?)"
+  required_services: ["EESS"]    # 只保留双方均含指定业务的载波对；空列表表示不限业务

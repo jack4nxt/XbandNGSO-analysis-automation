@@ -1,0 +1,51 @@
+# 用户参数覆盖配置（作用于数据库提取之后、冻结包生成之前）
+# 每项对单个字段只能写 set 或 delta 之一，不可同时出现。
+# 若覆盖 sat_gmax_dbi，必须显式提供 curve_policy: shift | keep | reject。
+
+psd_consistency_mode: "recompute_missing_or_paired"  # 改 power 或 psd 时同步更新另一项（基于带宽）
+
+items:
+  # 示例 1：将待评估网络下行波束的功率谱密度绝对覆盖为 -52 dBW/Hz
+  - id: "OVR-001"
+    target:
+      network: "SZU-1"
+      role: "interferer"         # interferer | victim | *
+    select:
+      kind: "carrier"            # carrier | earth_station | orbit | stations
+      beam: "*"
+      direction: "DL"            # DL | UL | *
+    set:
+      psd_dbw_hz: -52.0
+    delta: {}
+    curve_policy: null
+    reason: "按最新工程方案下调下行发射谱密度"
+
+  # 示例 2：在申报的星上天线最大增益基础上降低 3 dB，并要求方向图曲线同步平移
+  - id: "OVR-002"
+    target:
+      network: "SZU-1"
+      role: "interferer"
+    select:
+      kind: "carrier"
+      beam: "XDD"
+      direction: "DL"
+    set: {}
+    delta:
+      sat_gmax_dbi: -3.0
+    curve_policy: "shift"        # shift | keep | reject
+    reason: "星上天线增益按实测余量下调 3 dB"
+
+  # 示例 3：覆盖轨道面高度与倾角
+  - id: "OVR-003"
+    target:
+      network: "SZU-1"
+      role: "*"
+    select:
+      kind: "orbit"
+      plane_id: "P1"             # 轨道面 ID 或 *
+    set:
+      altitude_km: 530.0
+      inc_deg: 97.52
+    delta: {}
+    curve_policy: null
+    reason: "采用最新轨道设计参数"

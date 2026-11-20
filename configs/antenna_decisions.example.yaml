@@ -1,0 +1,77 @@
+# 天线待决项人工裁定持久化文件
+# 仅在此文件显式登记的裁定才会被执行；后续批次遇到同一波束时自动沿用，保证全局一致。
+
+decisions:
+  # 通用已批准规则：所有 max_phi >= 120 度（缺失尾部 <= 60 度）均视为尾部，统一采用 hold_last 末尾值平推至 180 度
+  # 注意：特定波束的单独裁定请写在此条之前（系统优先命中靠前的规则）
+  - id: "DEC-HOLD-LAST-TAIL-GE120"
+    key:
+      network: "*"
+      beam: "*"
+      emi_rcp: "*"
+      role: "*"
+    issue: "PHI_RANGE_SHORT"
+    action: "hold_last"
+    params:
+      max_gap_deg: 60.0
+    by: "jack"
+    date: "2026-11-19"
+    reason: "用户确认 max_phi >= 120 度的缺失均视为尾部，统一末尾值平推至 180 度"
+
+  # 通用已批准规则：出现 PEAK_MISMATCH 时以申报峰值增益为基准，对整条 phi-G 曲线统一加减固定峰值差 (declared_gmax - curve_peak)
+  - id: "DEC-SHIFT-PEAK-TO-DECLARED"
+    key:
+      network: "*"
+      beam: "*"
+      emi_rcp: "*"
+      role: "*"
+    issue: "PEAK_MISMATCH"
+    action: "shift_to_declared_peak"
+    params: {}
+    by: "jack"
+    date: "2026-11-19"
+    reason: "用户确认出现峰值偏差时以申报峰值为准，整条曲线统一平移补偿峰值差"
+
+  # 示例 1：某波束图上角度只画到 30 度（PHI_RANGE_SHORT），裁定按末值平推至 180 度
+  - id: "DEC-20261116-001"
+    key:
+      network: "2M8M-SAT"
+      beam: "XDD"
+      emi_rcp: "E"
+      role: "space"              # space | earth | *
+    issue: "PHI_RANGE_SHORT"     # 问题码或 *
+    action: "hold_last"          # shift_to_declared_peak | trust_curve | hold_last | constant_floor | use_model | use_csv | exclude
+    params: {}
+    by: "jack"
+    date: "2026-11-16"
+    reason: "原图仅绘制至 30 度，经核验旁瓣已趋平稳，采用边界值平推至 180 度"
+
+  # 示例 2：某仅申报峰值增益的波束，由用户显式批准按指定 ITU 模型生成
+  - id: "DEC-20261116-002"
+    key:
+      network: "CBERS-04A"
+      beam: "XDD"
+      emi_rcp: "E"
+      role: "space"
+    issue: "NO_SOURCE"
+    action: "use_model"
+    params:
+      model: "REC-1528"
+    by: "jack"
+    date: "2026-11-16"
+    reason: "仅申报峰值增益 25 dBi，经确认统一采用 ITU-R S.1528"
+
+  # 示例 3：使用用户自备离散 CSV 覆盖
+  - id: "DEC-20261116-003"
+    key:
+      network: "EXAMPLE-NET"
+      beam: "*"
+      emi_rcp: "R"
+      role: "earth"
+    issue: "NO_SOURCE"
+    action: "use_csv"
+    params:
+      csv_path: "${XBAND_NGSO_DATA_ROOT}/raw/antenna_patterns/EXAMPLE_EARTH.csv"
+    by: "jack"
+    date: "2026-11-16"
+    reason: "采用实测地球站方向图"

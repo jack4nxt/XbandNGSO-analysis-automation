@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.DS_Store
+
+# 真实配置(含本机路径)不入库,只提交 *.example.yaml
+configs/*.yaml
+!configs/*.example.yaml
+
+# 数据一律不进仓库
+*.parquet
+*.csv
+*.xlsx
+*.docx
+*.pdf
+outputs/
+data/

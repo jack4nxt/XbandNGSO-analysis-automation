@@ -1,0 +1,44 @@
+# 路径与目录布局配置（无硬编码路径；真实使用请复制为 configs/paths.yaml）
+# 所有字段均为必填；可空字段显式写 null。
+
+# 存放数据根目录的环境变量名（本机在 shell 或 .env 中导出该变量）
+data_root_env: XBAND_NGSO_DATA_ROOT
+# 可选: 导出 data_root_env 的 dotenv 文件(例如引擎的 ~/.config/x-band-ngso/.env); 不需要则写 null
+env_file: null
+
+# 数据根下的子目录名
+dirs:
+  outputs: outputs
+  cache: cache
+  raw_inputs: raw
+
+# 批次目录布局模板（支持变量: {batch_id}, {idx}, {interferer}, {victim}, {post_name}, {ts}）
+layout:
+  batch_dir: "{batch_id}"
+  pair_dir: "{idx}_{interferer}__vs__{victim}"
+  post_dir: "{post_name}_{ts}"
+  idx_width: 3
+  name_sanitize_regex: "[^A-Za-z0-9._-]+"
+  name_sanitize_char: "_"
+  timestamp_format: "%Y%m%d-%H%M%S"
+  coordination_table_file: "coordination_table.csv"
+  validation_report_file: "validation_report.md"
+  batch_state_file: "batch_state.json"
+  preflight_dir: "preflight"
+  pending_antennas_csv: "pending_antennas.csv"
+  pending_antennas_md: "pending_antennas.md"
+  frozen_subdir: "frozen"
+  raw_subdir: "raw"
+  post_runs_subdir: "post_runs"
+  pairs_subdir: "pairs"
+  batch_summary_file: "batch_summary.xlsx"
+  batch_verdict_file: "batch_verdict.csv"
+  coordination_context_file: "coordination_context.json"
+  freeze_manifest_file: "freeze_manifest.json"
+  batch_yaml_copy_file: "batch.yaml"
+  antenna_subdir: "antenna"          # frozen/antenna/*.csv  (最终使用的天线曲线)
+  libraries_subdir: "libraries"      # frozen/libraries/*.yaml (引擎库文件快照)
+  snapshots_subdir: "snapshots"      # 批次级: 决策/覆盖/策略文件快照
+  input_workbook_file: "INPUT.xlsx"
+  run_yaml_file: "run.yaml"
+  provenance_file: "provenance.json"

@@ -1,0 +1,62 @@
+# 天线数字化与门禁校验策略
+# 严格禁止静默计算与隐式回退；所有未列出或校验不通过的项必须进入待决清单。
+
+# 来源优先级（从上到下依次尝试；命中但校验失败不会继续往下兜底）
+source_order:
+  - "user_decision"
+  - "gims_vector"
+  - "sheet5_discrete"
+  - "gims_figure_verified"
+  - "itu_model"
+
+# 数字化曲线完整性与一致性校验阈值
+required_phi_max_deg: 180.0
+phi_step_deg: 0.5
+peak_tol_db: 1.0
+beamwidth_tol_frac: 0.25
+
+# 数据库中预数字化天线表（只读 SELECT）；如不使用可写 null
+pattern_table:
+  table: "public.xband_antenna_pattern"
+  statuses: ["ok"]
+  source_type_map:
+    gims_vector: "gims_vector"
+    discrete_sheet5: "sheet5_discrete"
+    gims_figure: "gims_figure_verified"
+
+# 各 ITU 标准模型公式所需的显式参数（缺失即判 MISSING_PARAMS，严禁反推估算）
+itu_model:
+  required_params:
+    REC-465-5: ["gmax_dbi"]
+    REC-465: ["gmax_dbi"]
+    REC-465-6-R: ["gmax_dbi"]
+    REC-465-6-E: ["gmax_dbi"]
+    REC-580-6: ["gmax_dbi"]
+    REC-580: ["gmax_dbi"]
+    AP8: ["gmax_dbi"]
+    AP7: ["gmax_dbi"]
+    REC-1213: ["gmax_dbi", "d_lambda"]
+    ABCDphi1: ["gmax_dbi", "coef_a", "coef_b", "coef_c", "coef_d", "phi1_deg"]
+    A-25*LOG(FI): ["gmax_dbi", "coef_a"]
+    REC-1528: ["gmax_dbi", "altitude_km"]
+    APSREC409V01: ["gmax_dbi"]
+    REC-672-10DB: ["gmax_dbi", "beamlet"]
+    ND-EARTH: ["gmax_dbi"]
+    ND-SPACE: ["gmax_dbi"]
+
+# 地球站天线型号显式映射（不得把 REC-465-6 静默映射成 S.465-5，除非在此显式配置或写入决策）
+earth_station:
+  model_map:
+    REC-465-5: "REC-465-5"
+    REC-465: "REC-465"
+    REC-465-6-R: "REC-465-6-R"
+    REC-465-6-E: "REC-465-6-E"
+    REC-580-6: "REC-580-6"
+    REC-580: "REC-580"
+    AP8: "AP8"
+    AP7: "AP7"
+    REC-1213: "REC-1213"
+    ABCDphi1: "ABCDphi1"
+    A-25*LOG(FI): "A-25*LOG(FI)"
+    ND-EARTH: "ND-EARTH"
+  allow_fallback: false          # 必须为 false；未知型号一律进待决清单

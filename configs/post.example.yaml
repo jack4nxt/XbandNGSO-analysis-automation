@@ -1,0 +1,36 @@
+# 独立批量后处理配置（只读 raw，可随时调参重跑）
+
+post_name: "default_post"
+max_workers: 4
+executor: "process"            # process（多进程隔离 Matplotlib，推荐）| thread
+continue_on_error: false
+
+# 透传给底层引擎统计模块的原始配置（支持引用现有 post_*.yaml 或内联配置）
+engine_post:
+  post_yaml: "${XBAND_NGSO_REPO}/configs/post_template.yaml"
+  overrides:
+    denominator: "total"         # victim_working | total
+    extra_loss_db: 0.0
+    link_outputs: true
+    include_pairwise: true
+    include_aggregate: false
+
+# 是否在后处理阶段同步生成单对 Word 报告
+report:
+  enabled: false
+  org: "待填写单位"
+
+# 跨 pair 汇总表（batch_summary.xlsx）列配置
+summary:
+  sort_by: ["pass", "min_margin_db"]
+  columns:
+    - "pair_id"
+    - "interferer"
+    - "victim"
+    - "scenario_id"
+    - "direction"
+    - "criteria_set"
+    - "pass"
+    - "max_exceed_percent"
+    - "min_margin_db"
+    - "worst_link"

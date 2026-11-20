@@ -1,0 +1,61 @@
+# 单次批量任务定义（一个批次一份；真实使用请复制为 configs/batch_<name>.yaml）
+# 禁止使用 start_utc: "TODAY"，必须冻结为精确的 ISO-8601 UTC 时刻。
+
+batch_id: "EXAMPLE_BATCH_20261116"
+evaluated_network: "SZU-1"
+
+# 待评估网络在每个 pair 中扮演的角色:
+#   interferer : 只作为干扰方（1 vs N）
+#   victim     : 只作为受扰方（N vs 1）
+#   both       : 双向均计算（pair 数翻倍）
+evaluated_role: "interferer"
+
+# 关注频段与适用方向（迁移到其他频段只需修改此处）
+bands:
+  - name: "X-band-UL"
+    f_low_mhz: 7235.0
+    f_high_mhz: 7250.0
+    directions: ["UL"]
+  - name: "X-band-DL"
+    f_low_mhz: 8025.0
+    f_high_mhz: 8400.0
+    directions: ["DL"]
+
+# 协调列表输入与规则
+coordination:
+  inputs:
+    - path: "${XBAND_COORD_INPUT_FILE}"
+      kind: "legacy_excel"     # legacy_excel | user_excel | word | pdf | standard
+  rules: "coordination_rules.yaml"
+  decisions: null              # 歧义匹配裁定文件，可为 null
+
+# 批次级冻结的仿真时间与步长
+time:
+  start_utc: "2026-09-01T00:00:00Z"   # 严禁 "TODAY"
+  duration_days: 366.0
+  coarse_step_s: 60.0
+
+# 参数覆盖文件（可为 null）
+overrides: "overrides.yaml"
+
+# 天线策略与决策文件
+antenna:
+  policy: "antenna_policy.yaml"
+  decisions: "antenna_decisions.yaml"
+
+# 底层引擎与目录库适配器（通过 importlib 动态加载）
+engine:
+  catalog_adapter: "xband_batch.adapters.xband_ngso:XBandNgsoCatalogAdapter"
+  engine_adapter: "xband_batch.adapters.xband_ngso:XBandNgsoEngineAdapter"
+  options:
+    repo_path: "${XBAND_NGSO_REPO}"
+    run_template_yaml: "${XBAND_NGSO_REPO}/configs/run_pair.yaml"
+    itu_extract_yaml: "${XBAND_NGSO_REPO}/configs/library/itu_extract.yaml"
+    country_filter: "CHN"
+
+# 批量执行控制
+runner:
+  max_workers: 4
+  executor: "process"          # process（多进程无GIL，推荐）| thread
+  resume: true                 # 跳过已完成 (done) 的 pair
+  continue_on_error: true      # 单 pair 失败仅记录，不中断整批

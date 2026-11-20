@@ -1,0 +1,12 @@
+# 协调列表匹配歧义人工裁定文件（可为 null）
+# 当协调列表中的原始名称在库中存在多候选（多通知单/多主管部门）或需要别名映射时在此显式登记。
+
+decisions:
+  - raw_name: "AIRSAT-2"
+    matched_name: "AIRSAT-2"
+    ntc_id: 123456789
+    adm: "CHN"
+    action: "select"             # select | skip
+    by: "jack"
+    date: "2026-11-16"
+    reason: "确认选用最新协调阶段通知单"
